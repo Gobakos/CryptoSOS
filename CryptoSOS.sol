@@ -129,6 +129,7 @@ contract CryptoSOSTest{
     }
 
     function sweepProfit() external onlyOwner{
+        require(firstPlayer==address(0) && secondPlayer==address(0),"People are still playing,dont try to take their money");
         require(address(this).balance>0,"No profit for owner");
         (bool success, )=owner.call{value: address(this).balance}("");
         require(success,"Owner couldn't receive the money");
