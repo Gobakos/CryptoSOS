@@ -1,2 +1,2 @@
-Simple SOS Game
-Written in Solidity
+#Simple SOS Game
+##Written in Solidity
