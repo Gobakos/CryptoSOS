@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.23;
 
 contract CryptoSOSTest{
     address public owner;
@@ -7,7 +7,7 @@ contract CryptoSOSTest{
     address public secondPlayer;
     uint256 public lastTimestamp;
     address public lastPlayer;
-    string public listOfLetters="---------";
+    string private listOfLetters="---------";
 
     //Indexed specifies storing so every event is stored at the logs
     event StartGame(address indexed firstPlayer,address indexed secondPlayer); //Storing the address of the players at the log record as a topic
@@ -19,17 +19,17 @@ contract CryptoSOSTest{
     event Tie(address indexed firstPlayer, address indexed secondPlayer);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "You can't call this function,only the owner of the contract can");
+        require(msg.sender==owner, "You can't call this function,only the owner of the contract can");
         _;
     }
 
     modifier onlyPlayers(){
-        require(msg.sender == firstPlayer || msg.sender == secondPlayer,"Only players who payed for this particular game call this function");
+        require(msg.sender==firstPlayer || msg.sender==secondPlayer,"Only players who payed for this particular game call this function");
         _;
     }
 
     modifier status(){
-        require(firstPlayer != address(0) || secondPlayer != address(0),"Game is not started yet");
+        require(firstPlayer!=address(0) || secondPlayer!=address(0),"Game is not started yet");
         _;
     }
 
@@ -38,7 +38,6 @@ contract CryptoSOSTest{
     }
 
     function play() public payable{
-        require(msg.sender != owner,"Owner cannot play his own game");
         require(msg.value == 1 ether,"You have to pay 1 ether in order to participate in this round"); //Paying 1 ether to the contract's balance is a must
         require(msg.sender != firstPlayer && msg.sender != secondPlayer,"You cant play with your self");
 
@@ -61,7 +60,7 @@ contract CryptoSOSTest{
         return listOfLetters;
     }
     function placeLetter(uint8 position,bytes1 character) internal {
-        require(firstPlayer!=address(0) || secondPlayer!=address(0),"There is only 1 player in the game still");
+        require(firstPlayer!=address(0) && secondPlayer!=address(0),"There is only 1 player in the game still");
         require(msg.sender==firstPlayer || msg.sender==secondPlayer,"Only players who payed for this particular game can Play");
         require(msg.sender!=lastPlayer,"Only the first player must play first");
         require(position>=0 && position<9,"Invalid position");
@@ -87,13 +86,13 @@ contract CryptoSOSTest{
             emit Winner(msg.sender);
             resetGame();
         }
-        require(secondPlayer==address(0) && block.timestamp - lastTimestamp > 120 seconds,"You have to wait 2 more minutes");
+        require(secondPlayer==address(0) && block.timestamp - lastTimestamp>120 seconds,"You have to wait 2 more minutes");
     }
 
     function tooSlow() external onlyPlayers{
-        require(msg.sender!=owner && block.timestamp - lastTimestamp >60 seconds,"You have to wait 1 minute");
+        require(msg.sender!=owner && block.timestamp - lastTimestamp>60 seconds,"You have to wait 1 minute");
         require(msg.sender==lastPlayer,"Can only be called by the last player");
-        if(msg.sender==lastPlayer && block.timestamp - lastTimestamp > 60 seconds){
+        if(msg.sender==lastPlayer && block.timestamp - lastTimestamp>60 seconds){
             (bool success1, )= lastPlayer.call{value:1.9 ether}("");
             require(success1,"The transfer to firstPlayer failed");
             emit Winner(msg.sender);
@@ -136,10 +135,10 @@ contract CryptoSOSTest{
     }
 
     function fullLetters() internal view returns (bool){
-        bytes memory str = bytes(listOfLetters);
-        for (uint8 i = 0; i < 9; i++) {
-            if (str[i] != "-") { 
-                return false; // Characters are different, not equal
+        bytes memory str=bytes(listOfLetters);
+        for (uint8 i=0;i<9;i++) {
+            if (str[i]!="-") { 
+                return false; //Characters are different,not equal
             }
         }
         return true;
@@ -155,29 +154,29 @@ contract CryptoSOSTest{
     }
     function checkWinner() internal view returns (bool) {
         bytes memory game=bytes(listOfLetters);
-        for (uint8 i = 0; i < 3; i++) {
-            if (game[i * 3] == "S" && game[i * 3 + 1] == "O" && game[i * 3 + 2] == "S") {
+        for (uint8 i=0;i<3;i++) {
+            if(game[i*3]=="S" && game[i*3+1]=="O" && game[i*3+2]=="S"){
                 return true;
             }
         }
         for (uint8 i = 0; i < 3; i++) {
-            if (game[i] == "S" && game[i + 3] == "O" && game[i + 6] == "S") {
+            if(game[i]=="S" && game[i+3]=="O" && game[i+6]=="S"){
                 return true;
             }
         }
-        if (game[0] == "S" && game[4] == "O" && game[8] == "S") {
+        if(game[0]=="S" && game[4]=="O" && game[8]=="S"){
             return true;
         }
-        if (game[2] == "S" && game[4] == "O" && game[6] == "S") {
+        if(game[2]=="S" && game[4]=="O" && game[6]=="S"){
             return true;
         }
         return false;
 
     }
     function checkEmpty(uint position) internal view returns (bool)  {
-        require(position < 9, "Invalid position");
+        require(position<9,"Invalid position");
         bytes memory str=bytes(listOfLetters);
-        return str[position] == '-';
+        return str[position]=='-';
 
     }
     function placeChar(uint8 number,bytes1 char) internal { //Placing character to the position the player wants
